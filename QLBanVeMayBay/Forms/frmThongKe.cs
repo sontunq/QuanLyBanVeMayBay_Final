@@ -10,6 +10,8 @@ namespace QLBanVeMayBay.Forms
         public frmThongKe()
         {
             InitializeComponent();
+            GiaoDien.LuoiMuot(dgvTheoThang);
+            GiaoDien.LuoiMuot(dgvTheoChuyen);
         }
 
         private void frmThongKe_Load(object sender, EventArgs e)
@@ -79,10 +81,25 @@ namespace QLBanVeMayBay.Forms
             try
             {
                 DataTable dt = KetNoiCSDL.LayDuLieu("sp_ThongKe_TheoThang", new SqlParameter("@Nam", (int)nudNam.Value));
-                if (dt.Rows.Count == 0)
+
+                // Proc luôn trả đủ 12 tháng, nên kiểm tra tổng doanh thu thay vì số dòng
+                decimal tong = 0;
+                foreach (DataRow row in dt.Rows)
+                    tong += Convert.ToDecimal(row["DoanhThu"]);
+                if (tong == 0)
                 {
                     MessageBox.Show("Năm " + nudNam.Value + " chưa có doanh thu.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
+                }
+
+                // Người lập và ngày lập hiện ở phần ký tên cuối báo cáo
+                DateTime homNay = DateTime.Now;
+                dt.Columns.Add("NguoiLap", typeof(string));
+                dt.Columns.Add("NgayLap", typeof(string));
+                foreach (DataRow row in dt.Rows)
+                {
+                    row["NguoiLap"] = PhienDangNhap.HoTen;
+                    row["NgayLap"] = "Ngày " + homNay.Day + " tháng " + homNay.Month + " năm " + homNay.Year;
                 }
 
                 frmBaoCao f = new frmBaoCao("rptDoanhThuThang.rpt", dt);

@@ -193,6 +193,7 @@
             this.lblTieuDe.AutoSize = true;
             this.lblTieuDe.Font = new System.Drawing.Font("Segoe UI", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblTieuDe.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(64)))), ((int)(((byte)(128)))));
+            this.lblTieuDe.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.lblTieuDe.Location = new System.Drawing.Point(200, 60);
             this.lblTieuDe.Name = "lblTieuDe";
             this.lblTieuDe.Size = new System.Drawing.Size(227, 20);
@@ -204,6 +205,7 @@
             this.lblXinChao.AutoSize = true;
             this.lblXinChao.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblXinChao.ForeColor = System.Drawing.Color.DimGray;
+            this.lblXinChao.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.lblXinChao.Location = new System.Drawing.Point(400, 100);
             this.lblXinChao.Name = "lblXinChao";
             this.lblXinChao.Size = new System.Drawing.Size(61, 20);
@@ -213,67 +215,103 @@
             // btnDatVe
             // 
             this.btnDatVe.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnDatVe.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.btnDatVe.Location = new System.Drawing.Point(150, 160);
             this.btnDatVe.Name = "btnDatVe";
             this.btnDatVe.Size = new System.Drawing.Size(190, 75);
             this.btnDatVe.TabIndex = 2;
             this.btnDatVe.Text = "Đặt vé";
-            this.btnDatVe.UseVisualStyleBackColor = true;
+            this.btnDatVe.BackColor = System.Drawing.Color.White;
+            this.btnDatVe.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(150)))), ((int)(((byte)(175)))), ((int)(((byte)(200)))));
+            this.btnDatVe.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(232)))), ((int)(((byte)(240)))), ((int)(((byte)(248)))));
+            this.btnDatVe.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnDatVe.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(64)))), ((int)(((byte)(128)))));
+            this.btnDatVe.UseVisualStyleBackColor = false;
             this.btnDatVe.Click += new System.EventHandler(this.btnDatVe_Click);
             // 
             // btnHuyVe
             // 
             this.btnHuyVe.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnHuyVe.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.btnHuyVe.Location = new System.Drawing.Point(355, 160);
             this.btnHuyVe.Name = "btnHuyVe";
             this.btnHuyVe.Size = new System.Drawing.Size(190, 75);
             this.btnHuyVe.TabIndex = 3;
             this.btnHuyVe.Text = "Tra cứu - Hủy vé";
-            this.btnHuyVe.UseVisualStyleBackColor = true;
+            this.btnHuyVe.BackColor = System.Drawing.Color.White;
+            this.btnHuyVe.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(150)))), ((int)(((byte)(175)))), ((int)(((byte)(200)))));
+            this.btnHuyVe.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(232)))), ((int)(((byte)(240)))), ((int)(((byte)(248)))));
+            this.btnHuyVe.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnHuyVe.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(64)))), ((int)(((byte)(128)))));
+            this.btnHuyVe.UseVisualStyleBackColor = false;
             this.btnHuyVe.Click += new System.EventHandler(this.btnHuyVe_Click);
             // 
             // btnChuyenBay
             // 
             this.btnChuyenBay.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnChuyenBay.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.btnChuyenBay.Location = new System.Drawing.Point(560, 160);
             this.btnChuyenBay.Name = "btnChuyenBay";
             this.btnChuyenBay.Size = new System.Drawing.Size(190, 75);
             this.btnChuyenBay.TabIndex = 4;
             this.btnChuyenBay.Text = "Chuyến bay";
-            this.btnChuyenBay.UseVisualStyleBackColor = true;
+            this.btnChuyenBay.BackColor = System.Drawing.Color.White;
+            this.btnChuyenBay.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(150)))), ((int)(((byte)(175)))), ((int)(((byte)(200)))));
+            this.btnChuyenBay.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(232)))), ((int)(((byte)(240)))), ((int)(((byte)(248)))));
+            this.btnChuyenBay.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnChuyenBay.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(64)))), ((int)(((byte)(128)))));
+            this.btnChuyenBay.UseVisualStyleBackColor = false;
             this.btnChuyenBay.Click += new System.EventHandler(this.btnChuyenBay_Click);
             // 
             // btnKhachHang
             // 
             this.btnKhachHang.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnKhachHang.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.btnKhachHang.Location = new System.Drawing.Point(150, 255);
             this.btnKhachHang.Name = "btnKhachHang";
             this.btnKhachHang.Size = new System.Drawing.Size(190, 75);
             this.btnKhachHang.TabIndex = 5;
             this.btnKhachHang.Text = "Khách hàng";
-            this.btnKhachHang.UseVisualStyleBackColor = true;
+            this.btnKhachHang.BackColor = System.Drawing.Color.White;
+            this.btnKhachHang.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(150)))), ((int)(((byte)(175)))), ((int)(((byte)(200)))));
+            this.btnKhachHang.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(232)))), ((int)(((byte)(240)))), ((int)(((byte)(248)))));
+            this.btnKhachHang.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnKhachHang.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(64)))), ((int)(((byte)(128)))));
+            this.btnKhachHang.UseVisualStyleBackColor = false;
             this.btnKhachHang.Click += new System.EventHandler(this.btnKhachHang_Click);
             // 
             // btnThongKe
             // 
             this.btnThongKe.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnThongKe.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.btnThongKe.Location = new System.Drawing.Point(355, 255);
             this.btnThongKe.Name = "btnThongKe";
             this.btnThongKe.Size = new System.Drawing.Size(190, 75);
             this.btnThongKe.TabIndex = 6;
             this.btnThongKe.Text = "Thống kê doanh thu";
-            this.btnThongKe.UseVisualStyleBackColor = true;
+            this.btnThongKe.BackColor = System.Drawing.Color.White;
+            this.btnThongKe.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(150)))), ((int)(((byte)(175)))), ((int)(((byte)(200)))));
+            this.btnThongKe.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(232)))), ((int)(((byte)(240)))), ((int)(((byte)(248)))));
+            this.btnThongKe.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnThongKe.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(64)))), ((int)(((byte)(128)))));
+            this.btnThongKe.UseVisualStyleBackColor = false;
             this.btnThongKe.Click += new System.EventHandler(this.btnThongKe_Click);
             // 
             // btnDangXuat
             // 
             this.btnDangXuat.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnDangXuat.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.btnDangXuat.Location = new System.Drawing.Point(560, 255);
             this.btnDangXuat.Name = "btnDangXuat";
             this.btnDangXuat.Size = new System.Drawing.Size(190, 75);
             this.btnDangXuat.TabIndex = 7;
             this.btnDangXuat.Text = "Đăng xuất";
-            this.btnDangXuat.UseVisualStyleBackColor = true;
+            this.btnDangXuat.BackColor = System.Drawing.Color.White;
+            this.btnDangXuat.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(150)))), ((int)(((byte)(175)))), ((int)(((byte)(200)))));
+            this.btnDangXuat.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(232)))), ((int)(((byte)(240)))), ((int)(((byte)(248)))));
+            this.btnDangXuat.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnDangXuat.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(64)))), ((int)(((byte)(128)))));
+            this.btnDangXuat.UseVisualStyleBackColor = false;
             this.btnDangXuat.Click += new System.EventHandler(this.btnDangXuat_Click);
             // 
             // statusStrip1
@@ -305,7 +343,9 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(900, 560);
+            this.MinimumSize = new System.Drawing.Size(916, 599);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.btnDangXuat);
             this.Controls.Add(this.btnThongKe);
@@ -321,6 +361,7 @@
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "frmMain";
             this.Text = "Quản lý bán vé máy bay";
+            this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.frmMain_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();

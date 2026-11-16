@@ -28,6 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyleTieuDe1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyleDongLe1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyleO1 = new System.Windows.Forms.DataGridViewCellStyle();
             this.lblTieuDe = new System.Windows.Forms.Label();
             this.lblMoTa = new System.Windows.Forms.Label();
             this.lblMaSanBay = new System.Windows.Forms.Label();
@@ -126,7 +129,12 @@
             this.btnThem.Size = new System.Drawing.Size(100, 32);
             this.btnThem.TabIndex = 8;
             this.btnThem.Text = "Thêm";
-            this.btnThem.UseVisualStyleBackColor = true;
+            this.btnThem.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(64)))), ((int)(((byte)(128)))));
+            this.btnThem.FlatAppearance.BorderSize = 0;
+            this.btnThem.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(84)))), ((int)(((byte)(160)))));
+            this.btnThem.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnThem.ForeColor = System.Drawing.Color.White;
+            this.btnThem.UseVisualStyleBackColor = false;
             this.btnThem.Click += new System.EventHandler(this.btnThem_Click);
             // 
             // btnSua
@@ -136,7 +144,12 @@
             this.btnSua.Size = new System.Drawing.Size(100, 32);
             this.btnSua.TabIndex = 9;
             this.btnSua.Text = "Sửa";
-            this.btnSua.UseVisualStyleBackColor = true;
+            this.btnSua.BackColor = System.Drawing.Color.White;
+            this.btnSua.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(150)))), ((int)(((byte)(175)))), ((int)(((byte)(200)))));
+            this.btnSua.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(232)))), ((int)(((byte)(240)))), ((int)(((byte)(248)))));
+            this.btnSua.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnSua.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(64)))), ((int)(((byte)(128)))));
+            this.btnSua.UseVisualStyleBackColor = false;
             this.btnSua.Click += new System.EventHandler(this.btnSua_Click);
             // 
             // btnXoa
@@ -146,7 +159,12 @@
             this.btnXoa.Size = new System.Drawing.Size(100, 32);
             this.btnXoa.TabIndex = 10;
             this.btnXoa.Text = "Xóa";
-            this.btnXoa.UseVisualStyleBackColor = true;
+            this.btnXoa.BackColor = System.Drawing.Color.White;
+            this.btnXoa.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(150)))), ((int)(((byte)(175)))), ((int)(((byte)(200)))));
+            this.btnXoa.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(253)))), ((int)(((byte)(236)))), ((int)(((byte)(236)))));
+            this.btnXoa.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnXoa.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.btnXoa.UseVisualStyleBackColor = false;
             this.btnXoa.Click += new System.EventHandler(this.btnXoa_Click);
             // 
             // btnLamMoi
@@ -156,7 +174,12 @@
             this.btnLamMoi.Size = new System.Drawing.Size(100, 32);
             this.btnLamMoi.TabIndex = 11;
             this.btnLamMoi.Text = "Làm mới";
-            this.btnLamMoi.UseVisualStyleBackColor = true;
+            this.btnLamMoi.BackColor = System.Drawing.Color.White;
+            this.btnLamMoi.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(150)))), ((int)(((byte)(175)))), ((int)(((byte)(200)))));
+            this.btnLamMoi.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(232)))), ((int)(((byte)(240)))), ((int)(((byte)(248)))));
+            this.btnLamMoi.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnLamMoi.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(64)))), ((int)(((byte)(128)))));
+            this.btnLamMoi.UseVisualStyleBackColor = false;
             this.btnLamMoi.Click += new System.EventHandler(this.btnLamMoi_Click);
             // 
             // lblDanhSach
@@ -175,7 +198,31 @@
             this.dgvSanBay.AllowUserToDeleteRows = false;
             this.dgvSanBay.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
             this.dgvSanBay.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.dgvSanBay.BackgroundColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyleDongLe1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(245)))), ((int)(((byte)(248)))), ((int)(((byte)(252)))));
+            this.dgvSanBay.AlternatingRowsDefaultCellStyle = dataGridViewCellStyleDongLe1;
+            this.dgvSanBay.BackgroundColor = System.Drawing.Color.White;
+            this.dgvSanBay.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.dgvSanBay.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.Single;
+            dataGridViewCellStyleTieuDe1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyleTieuDe1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(64)))), ((int)(((byte)(128)))));
+            dataGridViewCellStyleTieuDe1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            dataGridViewCellStyleTieuDe1.ForeColor = System.Drawing.Color.White;
+            dataGridViewCellStyleTieuDe1.Padding = new System.Windows.Forms.Padding(2, 4, 2, 4);
+            dataGridViewCellStyleTieuDe1.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(64)))), ((int)(((byte)(128)))));
+            dataGridViewCellStyleTieuDe1.SelectionForeColor = System.Drawing.Color.White;
+            dataGridViewCellStyleTieuDe1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgvSanBay.ColumnHeadersDefaultCellStyle = dataGridViewCellStyleTieuDe1;
+            dataGridViewCellStyleO1.BackColor = System.Drawing.Color.White;
+            dataGridViewCellStyleO1.Font = new System.Drawing.Font("Segoe UI", 9F);
+            dataGridViewCellStyleO1.ForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyleO1.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(204)))), ((int)(((byte)(224)))), ((int)(((byte)(245)))));
+            dataGridViewCellStyleO1.SelectionForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyleO1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgvSanBay.DefaultCellStyle = dataGridViewCellStyleO1;
+            this.dgvSanBay.EnableHeadersVisualStyles = false;
+            this.dgvSanBay.GridColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(226)))), ((int)(((byte)(232)))));
+            this.dgvSanBay.RowHeadersVisible = false;
+            this.dgvSanBay.RowTemplate.Height = 26;
             this.dgvSanBay.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvSanBay.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.colMaSanBay,
@@ -217,7 +264,9 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(780, 540);
+            this.MinimumSize = new System.Drawing.Size(796, 579);
             this.Controls.Add(this.dgvSanBay);
             this.Controls.Add(this.lblDanhSach);
             this.Controls.Add(this.btnLamMoi);
@@ -236,6 +285,7 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Name = "frmSanBay";
             this.Text = "Quản lý sân bay";
+            this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.frmSanBay_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgvSanBay)).EndInit();
             this.ResumeLayout(false);

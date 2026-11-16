@@ -28,12 +28,24 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyleTieuDe1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyleDongLe1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyleO1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyleTieuDe2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyleDongLe2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyleO2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle9 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle10 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle11 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle12 = new System.Windows.Forms.DataGridViewCellStyle();
             this.lblTieuDe = new System.Windows.Forms.Label();
             this.lblMoTa = new System.Windows.Forms.Label();
             this.lblNam = new System.Windows.Forms.Label();
@@ -56,6 +68,12 @@
             this.colNgayGioBay = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colSoVeChuyen = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colDoanhThuChuyen = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colTienVe = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colSoVeHuy = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colPhiHuy = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colTienVeChuyen = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colSoVeHuyChuyen = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colPhiHuyChuyen = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.nudNam)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgvTheoThang)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgvTheoChuyen)).BeginInit();
@@ -80,7 +98,7 @@
             this.lblMoTa.Name = "lblMoTa";
             this.lblMoTa.Size = new System.Drawing.Size(407, 15);
             this.lblMoTa.TabIndex = 1;
-            this.lblMoTa.Text = "Chỉ tính các vé đang có hiệu lực (không tính vé đã hủy).";
+            this.lblMoTa.Text = "Doanh thu = tiền các vé đang có hiệu lực + phí hủy giữ lại từ vé đã hủy.";
             // 
             // lblNam
             // 
@@ -144,7 +162,12 @@
             this.btnXem.Size = new System.Drawing.Size(100, 30);
             this.btnXem.TabIndex = 6;
             this.btnXem.Text = "Xem";
-            this.btnXem.UseVisualStyleBackColor = true;
+            this.btnXem.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(64)))), ((int)(((byte)(128)))));
+            this.btnXem.FlatAppearance.BorderSize = 0;
+            this.btnXem.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(84)))), ((int)(((byte)(160)))));
+            this.btnXem.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnXem.ForeColor = System.Drawing.Color.White;
+            this.btnXem.UseVisualStyleBackColor = false;
             this.btnXem.Click += new System.EventHandler(this.btnXem_Click);
             // 
             // btnInBaoCao
@@ -154,7 +177,12 @@
             this.btnInBaoCao.Size = new System.Drawing.Size(110, 30);
             this.btnInBaoCao.TabIndex = 7;
             this.btnInBaoCao.Text = "In báo cáo";
-            this.btnInBaoCao.UseVisualStyleBackColor = true;
+            this.btnInBaoCao.BackColor = System.Drawing.Color.White;
+            this.btnInBaoCao.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(150)))), ((int)(((byte)(175)))), ((int)(((byte)(200)))));
+            this.btnInBaoCao.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(232)))), ((int)(((byte)(240)))), ((int)(((byte)(248)))));
+            this.btnInBaoCao.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnInBaoCao.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(64)))), ((int)(((byte)(128)))));
+            this.btnInBaoCao.UseVisualStyleBackColor = false;
             this.btnInBaoCao.Click += new System.EventHandler(this.btnInBaoCao_Click);
             // 
             // lblTieuDeTongVe
@@ -203,11 +231,38 @@
             this.dgvTheoThang.AllowUserToDeleteRows = false;
             this.dgvTheoThang.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
             this.dgvTheoThang.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.dgvTheoThang.BackgroundColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyleDongLe1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(245)))), ((int)(((byte)(248)))), ((int)(((byte)(252)))));
+            this.dgvTheoThang.AlternatingRowsDefaultCellStyle = dataGridViewCellStyleDongLe1;
+            this.dgvTheoThang.BackgroundColor = System.Drawing.Color.White;
+            this.dgvTheoThang.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.dgvTheoThang.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.Single;
+            dataGridViewCellStyleTieuDe1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyleTieuDe1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(64)))), ((int)(((byte)(128)))));
+            dataGridViewCellStyleTieuDe1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            dataGridViewCellStyleTieuDe1.ForeColor = System.Drawing.Color.White;
+            dataGridViewCellStyleTieuDe1.Padding = new System.Windows.Forms.Padding(2, 4, 2, 4);
+            dataGridViewCellStyleTieuDe1.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(64)))), ((int)(((byte)(128)))));
+            dataGridViewCellStyleTieuDe1.SelectionForeColor = System.Drawing.Color.White;
+            dataGridViewCellStyleTieuDe1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgvTheoThang.ColumnHeadersDefaultCellStyle = dataGridViewCellStyleTieuDe1;
+            dataGridViewCellStyleO1.BackColor = System.Drawing.Color.White;
+            dataGridViewCellStyleO1.Font = new System.Drawing.Font("Segoe UI", 9F);
+            dataGridViewCellStyleO1.ForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyleO1.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(204)))), ((int)(((byte)(224)))), ((int)(((byte)(245)))));
+            dataGridViewCellStyleO1.SelectionForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyleO1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgvTheoThang.DefaultCellStyle = dataGridViewCellStyleO1;
+            this.dgvTheoThang.EnableHeadersVisualStyles = false;
+            this.dgvTheoThang.GridColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(226)))), ((int)(((byte)(232)))));
+            this.dgvTheoThang.RowHeadersVisible = false;
+            this.dgvTheoThang.RowTemplate.Height = 26;
             this.dgvTheoThang.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvTheoThang.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.colThang,
             this.colSoVe,
+            this.colTienVe,
+            this.colSoVeHuy,
+            this.colPhiHuy,
             this.colDoanhThu});
             this.dgvTheoThang.Location = new System.Drawing.Point(20, 175);
             this.dgvTheoThang.MultiSelect = false;
@@ -244,9 +299,41 @@
             dataGridViewCellStyle3.Format = "N0";
             this.colDoanhThu.DefaultCellStyle = dataGridViewCellStyle3;
             this.colDoanhThu.FillWeight = 120F;
-            this.colDoanhThu.HeaderText = "Doanh thu (VNĐ)";
+            this.colDoanhThu.HeaderText = "Tổng doanh thu (VNĐ)";
             this.colDoanhThu.Name = "colDoanhThu";
             this.colDoanhThu.ReadOnly = true;
+            // 
+            // colTienVe
+            // 
+            this.colTienVe.DataPropertyName = "TienVe";
+            dataGridViewCellStyle7.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            dataGridViewCellStyle7.Format = "N0";
+            this.colTienVe.DefaultCellStyle = dataGridViewCellStyle7;
+            this.colTienVe.FillWeight = 110F;
+            this.colTienVe.HeaderText = "Tiền vé (VNĐ)";
+            this.colTienVe.Name = "colTienVe";
+            this.colTienVe.ReadOnly = true;
+            // 
+            // colSoVeHuy
+            // 
+            this.colSoVeHuy.DataPropertyName = "SoVeHuy";
+            dataGridViewCellStyle8.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            this.colSoVeHuy.DefaultCellStyle = dataGridViewCellStyle8;
+            this.colSoVeHuy.FillWeight = 70F;
+            this.colSoVeHuy.HeaderText = "Số vé hủy";
+            this.colSoVeHuy.Name = "colSoVeHuy";
+            this.colSoVeHuy.ReadOnly = true;
+            // 
+            // colPhiHuy
+            // 
+            this.colPhiHuy.DataPropertyName = "PhiHuy";
+            dataGridViewCellStyle9.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            dataGridViewCellStyle9.Format = "N0";
+            this.colPhiHuy.DefaultCellStyle = dataGridViewCellStyle9;
+            this.colPhiHuy.FillWeight = 100F;
+            this.colPhiHuy.HeaderText = "Phí hủy (VNĐ)";
+            this.colPhiHuy.Name = "colPhiHuy";
+            this.colPhiHuy.ReadOnly = true;
             // 
             // dgvTheoChuyen
             // 
@@ -254,13 +341,40 @@
             this.dgvTheoChuyen.AllowUserToDeleteRows = false;
             this.dgvTheoChuyen.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
             this.dgvTheoChuyen.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.dgvTheoChuyen.BackgroundColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyleDongLe2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(245)))), ((int)(((byte)(248)))), ((int)(((byte)(252)))));
+            this.dgvTheoChuyen.AlternatingRowsDefaultCellStyle = dataGridViewCellStyleDongLe2;
+            this.dgvTheoChuyen.BackgroundColor = System.Drawing.Color.White;
+            this.dgvTheoChuyen.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.dgvTheoChuyen.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.Single;
+            dataGridViewCellStyleTieuDe2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyleTieuDe2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(64)))), ((int)(((byte)(128)))));
+            dataGridViewCellStyleTieuDe2.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            dataGridViewCellStyleTieuDe2.ForeColor = System.Drawing.Color.White;
+            dataGridViewCellStyleTieuDe2.Padding = new System.Windows.Forms.Padding(2, 4, 2, 4);
+            dataGridViewCellStyleTieuDe2.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(64)))), ((int)(((byte)(128)))));
+            dataGridViewCellStyleTieuDe2.SelectionForeColor = System.Drawing.Color.White;
+            dataGridViewCellStyleTieuDe2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgvTheoChuyen.ColumnHeadersDefaultCellStyle = dataGridViewCellStyleTieuDe2;
+            dataGridViewCellStyleO2.BackColor = System.Drawing.Color.White;
+            dataGridViewCellStyleO2.Font = new System.Drawing.Font("Segoe UI", 9F);
+            dataGridViewCellStyleO2.ForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyleO2.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(204)))), ((int)(((byte)(224)))), ((int)(((byte)(245)))));
+            dataGridViewCellStyleO2.SelectionForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyleO2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgvTheoChuyen.DefaultCellStyle = dataGridViewCellStyleO2;
+            this.dgvTheoChuyen.EnableHeadersVisualStyles = false;
+            this.dgvTheoChuyen.GridColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(226)))), ((int)(((byte)(232)))));
+            this.dgvTheoChuyen.RowHeadersVisible = false;
+            this.dgvTheoChuyen.RowTemplate.Height = 26;
             this.dgvTheoChuyen.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvTheoChuyen.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.colMaChuyenBay,
             this.colChangBay,
             this.colNgayGioBay,
             this.colSoVeChuyen,
+            this.colTienVeChuyen,
+            this.colSoVeHuyChuyen,
+            this.colPhiHuyChuyen,
             this.colDoanhThuChuyen});
             this.dgvTheoChuyen.Location = new System.Drawing.Point(20, 175);
             this.dgvTheoChuyen.MultiSelect = false;
@@ -282,7 +396,7 @@
             // colChangBay
             // 
             this.colChangBay.DataPropertyName = "ChangBay";
-            this.colChangBay.FillWeight = 80F;
+            this.colChangBay.FillWeight = 220F;
             this.colChangBay.HeaderText = "Chặng bay";
             this.colChangBay.Name = "colChangBay";
             this.colChangBay.ReadOnly = true;
@@ -313,15 +427,49 @@
             dataGridViewCellStyle6.Format = "N0";
             this.colDoanhThuChuyen.DefaultCellStyle = dataGridViewCellStyle6;
             this.colDoanhThuChuyen.FillWeight = 110F;
-            this.colDoanhThuChuyen.HeaderText = "Doanh thu (VNĐ)";
+            this.colDoanhThuChuyen.HeaderText = "Tổng doanh thu (VNĐ)";
             this.colDoanhThuChuyen.Name = "colDoanhThuChuyen";
             this.colDoanhThuChuyen.ReadOnly = true;
+            // 
+            // colTienVeChuyen
+            // 
+            this.colTienVeChuyen.DataPropertyName = "TienVe";
+            dataGridViewCellStyle10.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            dataGridViewCellStyle10.Format = "N0";
+            this.colTienVeChuyen.DefaultCellStyle = dataGridViewCellStyle10;
+            this.colTienVeChuyen.FillWeight = 100F;
+            this.colTienVeChuyen.HeaderText = "Tiền vé (VNĐ)";
+            this.colTienVeChuyen.Name = "colTienVeChuyen";
+            this.colTienVeChuyen.ReadOnly = true;
+            // 
+            // colSoVeHuyChuyen
+            // 
+            this.colSoVeHuyChuyen.DataPropertyName = "SoVeHuy";
+            dataGridViewCellStyle11.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            this.colSoVeHuyChuyen.DefaultCellStyle = dataGridViewCellStyle11;
+            this.colSoVeHuyChuyen.FillWeight = 65F;
+            this.colSoVeHuyChuyen.HeaderText = "Số vé hủy";
+            this.colSoVeHuyChuyen.Name = "colSoVeHuyChuyen";
+            this.colSoVeHuyChuyen.ReadOnly = true;
+            // 
+            // colPhiHuyChuyen
+            // 
+            this.colPhiHuyChuyen.DataPropertyName = "PhiHuy";
+            dataGridViewCellStyle12.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            dataGridViewCellStyle12.Format = "N0";
+            this.colPhiHuyChuyen.DefaultCellStyle = dataGridViewCellStyle12;
+            this.colPhiHuyChuyen.FillWeight = 90F;
+            this.colPhiHuyChuyen.HeaderText = "Phí hủy (VNĐ)";
+            this.colPhiHuyChuyen.Name = "colPhiHuyChuyen";
+            this.colPhiHuyChuyen.ReadOnly = true;
             // 
             // frmThongKe
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(900, 580);
+            this.MinimumSize = new System.Drawing.Size(916, 619);
             this.Controls.Add(this.dgvTheoChuyen);
             this.Controls.Add(this.dgvTheoThang);
             this.Controls.Add(this.lblTongDoanhThu);
@@ -340,6 +488,7 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Name = "frmThongKe";
             this.Text = "Thống kê doanh thu";
+            this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.frmThongKe_Load);
             ((System.ComponentModel.ISupportInitialize)(this.nudNam)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgvTheoThang)).EndInit();
@@ -373,5 +522,11 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn colNgayGioBay;
         private System.Windows.Forms.DataGridViewTextBoxColumn colSoVeChuyen;
         private System.Windows.Forms.DataGridViewTextBoxColumn colDoanhThuChuyen;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colTienVe;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colSoVeHuy;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colPhiHuy;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colTienVeChuyen;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colSoVeHuyChuyen;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colPhiHuyChuyen;
     }
 }

@@ -11,6 +11,7 @@ namespace QLBanVeMayBay.Forms
         public frmMayBay()
         {
             InitializeComponent();
+            GiaoDien.LuoiMuot(dgvMayBay);
         }
 
         private void frmMayBay_Load(object sender, EventArgs e)

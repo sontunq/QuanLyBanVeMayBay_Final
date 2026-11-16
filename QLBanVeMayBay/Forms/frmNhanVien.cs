@@ -11,6 +11,7 @@ namespace QLBanVeMayBay.Forms
         public frmNhanVien()
         {
             InitializeComponent();
+            GiaoDien.LuoiMuot(dgvNhanVien);
         }
 
         private void frmNhanVien_Load(object sender, EventArgs e)

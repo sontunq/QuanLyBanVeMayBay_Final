@@ -10,21 +10,20 @@ namespace QLBanVeMayBay.Forms
         public frmChuyenBay()
         {
             InitializeComponent();
+            GiaoDien.LuoiMuot(dgvChuyenBay);
         }
 
         private void frmChuyenBay_Load(object sender, EventArgs e)
         {
             try
             {
-                cboMayBay.DisplayMember = "SoHieu";
-                cboMayBay.ValueMember = "MaMayBay";
-                cboMayBay.DataSource = KetNoiCSDL.LayDuLieu("sp_MayBay_DanhSach");
+                LoadMayBay();
 
                 DataTable sanBay = KetNoiCSDL.LayDuLieu("sp_SanBay_DanhSach");
-                cboSanBayDi.DisplayMember = "MaSanBay";
+                cboSanBayDi.DisplayMember = "ThongTin";
                 cboSanBayDi.ValueMember = "MaSanBay";
                 cboSanBayDi.DataSource = sanBay;
-                cboSanBayDen.DisplayMember = "MaSanBay";
+                cboSanBayDen.DisplayMember = "ThongTin";
                 cboSanBayDen.ValueMember = "MaSanBay";
                 cboSanBayDen.DataSource = sanBay.Copy();
 
@@ -37,10 +36,36 @@ namespace QLBanVeMayBay.Forms
             }
         }
 
+        private void LoadMayBay()
+        {
+            cboMayBay.DisplayMember = "SoHieu";
+            cboMayBay.ValueMember = "MaMayBay";
+            cboMayBay.DataSource = KetNoiCSDL.LayDuLieu("sp_MayBay_DanhSach");
+        }
+
         private void LoadData()
         {
             dgvChuyenBay.AutoGenerateColumns = false;
             dgvChuyenBay.DataSource = KetNoiCSDL.LayDuLieu("sp_ChuyenBay_DanhSach");
+        }
+
+        // Ghép ngày (ô ngày) và giờ (ô giờ) thành ngày giờ bay, bỏ phần giây
+        private DateTime NgayGioBay()
+        {
+            DateTime gio = dtpGioBay.Value;
+            return dtpNgayBay.Value.Date.AddHours(gio.Hour).AddMinutes(gio.Minute);
+        }
+
+        private void HienNgayGioBay(DateTime ngayGio)
+        {
+            dtpNgayBay.Value = ngayGio.Date;
+            dtpGioBay.Value = ngayGio;
+        }
+
+        // Giờ đến = giờ bay + thời gian bay
+        private void ThoiGian_ValueChanged(object sender, EventArgs e)
+        {
+            lblGioDen.Text = NgayGioBay().AddMinutes((double)nudThoiGianBay.Value).ToString("dd/MM/yyyy HH:mm");
         }
 
         private void LamMoi()
@@ -48,7 +73,8 @@ namespace QLBanVeMayBay.Forms
             txtMaChuyenBay.Clear();
             txtMaChuyenBay.Enabled = true;
             cboTrangThai.SelectedIndex = 0;
-            dtpNgayGioBay.Value = DateTime.Today.AddDays(1).AddHours(8);
+            HienNgayGioBay(DateTime.Today.AddDays(1).AddHours(8));
+            nudThoiGianBay.Value = 120;
             nudGiaPhoThong.Value = 1000000;
             nudGiaThuongGia.Value = 2500000;
             txtMaChuyenBay.Focus();
@@ -82,7 +108,8 @@ namespace QLBanVeMayBay.Forms
                 new SqlParameter("@MaMayBay", cboMayBay.SelectedValue),
                 new SqlParameter("@SanBayDi", cboSanBayDi.SelectedValue),
                 new SqlParameter("@SanBayDen", cboSanBayDen.SelectedValue),
-                new SqlParameter("@NgayGioBay", dtpNgayGioBay.Value),
+                new SqlParameter("@NgayGioBay", NgayGioBay()),
+                new SqlParameter("@ThoiGianBay", (int)nudThoiGianBay.Value),
                 new SqlParameter("@GiaPhoThong", nudGiaPhoThong.Value),
                 new SqlParameter("@GiaThuongGia", nudGiaThuongGia.Value),
                 new SqlParameter("@TrangThai", cboTrangThai.Text)
@@ -98,7 +125,8 @@ namespace QLBanVeMayBay.Forms
             cboMayBay.SelectedValue = row.Cells["colMaMayBay"].Value;
             cboSanBayDi.SelectedValue = row.Cells["colSanBayDi"].Value;
             cboSanBayDen.SelectedValue = row.Cells["colSanBayDen"].Value;
-            dtpNgayGioBay.Value = Convert.ToDateTime(row.Cells["colNgayGioBay"].Value);
+            HienNgayGioBay(Convert.ToDateTime(row.Cells["colNgayGioBay"].Value));
+            nudThoiGianBay.Value = Convert.ToInt32(row.Cells["colThoiGianBay"].Value);
             nudGiaPhoThong.Value = Convert.ToDecimal(row.Cells["colGiaPhoThong"].Value);
             nudGiaThuongGia.Value = Convert.ToDecimal(row.Cells["colGiaThuongGia"].Value);
             cboTrangThai.Text = row.Cells["colTrangThai"].Value.ToString();
@@ -109,7 +137,7 @@ namespace QLBanVeMayBay.Forms
         {
             if (!KiemTra()) return;
 
-            if (dtpNgayGioBay.Value <= DateTime.Now)
+            if (NgayGioBay() <= DateTime.Now)
             {
                 MessageBox.Show("Ngày giờ bay phải sau thời điểm hiện tại.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
@@ -177,6 +205,29 @@ namespace QLBanVeMayBay.Forms
         private void btnLamMoi_Click(object sender, EventArgs e)
         {
             LamMoi();
+        }
+
+        // Mở form máy bay để thêm nhanh, đóng lại thì chọn máy bay vừa thêm (mã lớn nhất)
+        private void btnThemMayBay_Click(object sender, EventArgs e)
+        {
+            frmMayBay f = new frmMayBay();
+            f.ShowDialog();
+
+            try
+            {
+                object maCu = cboMayBay.SelectedValue;
+                int soCu = cboMayBay.Items.Count;
+                LoadMayBay();
+
+                if (cboMayBay.Items.Count > soCu)
+                    cboMayBay.SelectedIndex = cboMayBay.Items.Count - 1;
+                else if (maCu != null)
+                    cboMayBay.SelectedValue = maCu;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void btnInDanhSach_Click(object sender, EventArgs e)

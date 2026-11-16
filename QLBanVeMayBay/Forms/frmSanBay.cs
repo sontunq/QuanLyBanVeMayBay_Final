@@ -9,6 +9,7 @@ namespace QLBanVeMayBay.Forms
         public frmSanBay()
         {
             InitializeComponent();
+            GiaoDien.LuoiMuot(dgvSanBay);
         }
 
         private void frmSanBay_Load(object sender, EventArgs e)

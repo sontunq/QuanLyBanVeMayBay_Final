@@ -1,25 +1,13 @@
-﻿-- =============================================
--- CƠ SỞ DỮ LIỆU: QUẢN LÝ BÁN VÉ MÁY BAY
--- =============================================
-USE master
-GO
-
-IF DB_ID('QLBanVeMayBay') IS NOT NULL
-BEGIN
-    ALTER DATABASE QLBanVeMayBay SET SINGLE_USER WITH ROLLBACK IMMEDIATE
-    DROP DATABASE QLBanVeMayBay
-END
-GO
-
-CREATE DATABASE QLBanVeMayBay
-GO
-
+﻿-- CƠ SỞ DỮ LIỆU: QUẢN LÝ BÁN VÉ MÁY BAY
+-- File 1/2: tạo bảng, view, stored procedure và dữ liệu bắt buộc
+-- (tài khoản đăng nhập, hạng thành viên, mức phí hủy).
+-- Cách dùng: tạo CSDL trống bằng lệnh bên dưới, chạy file này, sau đó chạy DuLieuMau.sql.
+-- CREATE DATABASE QLBanVeMayBay
 USE QLBanVeMayBay
 GO
 
--- =============================================
+
 -- TẠO BẢNG
--- =============================================
 CREATE TABLE NhanVien
 (
     MaNV INT IDENTITY(1,1) PRIMARY KEY,
@@ -28,7 +16,7 @@ CREATE TABLE NhanVien
     MatKhau VARCHAR(50) NOT NULL,
     VaiTro NVARCHAR(20) NOT NULL
 )
-GO
+
 
 CREATE TABLE SanBay
 (
@@ -36,7 +24,7 @@ CREATE TABLE SanBay
     TenSanBay NVARCHAR(100) NOT NULL,
     ThanhPho NVARCHAR(50) NOT NULL
 )
-GO
+
 
 CREATE TABLE MayBay
 (
@@ -45,29 +33,30 @@ CREATE TABLE MayBay
     LoaiMayBay NVARCHAR(50) NOT NULL,
     SoHangGhe INT NOT NULL
 )
-GO
+
 
 CREATE TABLE Ghe
 (
     MaGhe INT IDENTITY(1,1) PRIMARY KEY,
-    MaMayBay INT NOT NULL FOREIGN KEY REFERENCES MayBay(MaMayBay),
+    MaMayBay INT NOT NULL REFERENCES MayBay(MaMayBay),
     SoGhe VARCHAR(5) NOT NULL,
     HangVe NVARCHAR(20) NOT NULL
 )
-GO
+
 
 CREATE TABLE ChuyenBay
 (
     MaChuyenBay VARCHAR(10) PRIMARY KEY,
-    MaMayBay INT NOT NULL FOREIGN KEY REFERENCES MayBay(MaMayBay),
-    SanBayDi VARCHAR(5) NOT NULL FOREIGN KEY REFERENCES SanBay(MaSanBay),
-    SanBayDen VARCHAR(5) NOT NULL FOREIGN KEY REFERENCES SanBay(MaSanBay),
+    MaMayBay INT NOT NULL REFERENCES MayBay(MaMayBay),
+    SanBayDi VARCHAR(5) NOT NULL REFERENCES SanBay(MaSanBay),
+    SanBayDen VARCHAR(5) NOT NULL REFERENCES SanBay(MaSanBay),
     NgayGioBay DATETIME NOT NULL,
+    ThoiGianBay INT NOT NULL DEFAULT 120, -- Thời gian bay (phút)
     GiaPhoThong MONEY NOT NULL,
     GiaThuongGia MONEY NOT NULL,
     TrangThai NVARCHAR(20) NOT NULL DEFAULT N'Mở bán'
 )
-GO
+
 
 CREATE TABLE KhachHang
 (
@@ -79,25 +68,90 @@ CREATE TABLE KhachHang
     SoDienThoai VARCHAR(15),
     Email VARCHAR(100)
 )
-GO
+
 
 CREATE TABLE Ve
 (
     MaVe INT IDENTITY(1,1) PRIMARY KEY,
-    MaChuyenBay VARCHAR(10) NOT NULL FOREIGN KEY REFERENCES ChuyenBay(MaChuyenBay),
-    MaKH INT NOT NULL FOREIGN KEY REFERENCES KhachHang(MaKH),
-    MaGhe INT NOT NULL FOREIGN KEY REFERENCES Ghe(MaGhe),
-    GiaVe MONEY NOT NULL,
+    MaChuyenBay VARCHAR(10) NOT NULL REFERENCES ChuyenBay(MaChuyenBay),
+    MaKH INT NOT NULL REFERENCES KhachHang(MaKH),
+    MaGhe INT NOT NULL REFERENCES Ghe(MaGhe),
+    GiaVe MONEY NOT NULL,              -- Số tiền khách trả (đã trừ ưu đãi)
+    GiaGoc MONEY NULL,                 -- Giá vé trước ưu đãi
+    TyLeGiam INT NOT NULL DEFAULT 0,   -- % ưu đãi đã áp dụng
     PhuongThuc NVARCHAR(20) NOT NULL,
     NgayDat DATETIME NOT NULL DEFAULT GETDATE(),
-    MaNV INT NOT NULL FOREIGN KEY REFERENCES NhanVien(MaNV),
-    TrangThai NVARCHAR(20) NOT NULL DEFAULT N'Đã đặt'
+    MaNV INT NOT NULL REFERENCES NhanVien(MaNV),
+    TrangThai NVARCHAR(20) NOT NULL DEFAULT N'Đã đặt',
+    NgayHuy DATETIME NULL,
+    LyDoHuy NVARCHAR(200) NULL,
+    TyLePhiHuy INT NULL,               -- % phí hủy đã áp dụng
+    PhiHuy MONEY NULL,                 -- Tiền phí giữ lại (tính vào doanh thu)
+    TienHoan MONEY NULL                -- Tiền trả lại cho khách
+)
+
+
+-- Hạng thành viên: đạt hạng khi tổng chi tiêu >= MucChiTieu
+CREATE TABLE HangThanhVien
+(
+    TenHang NVARCHAR(20) PRIMARY KEY,
+    MucChiTieu MONEY NOT NULL,
+    TyLeGiam INT NOT NULL           -- % giảm giá vé
+)
+
+
+-- Mức phí hủy: áp dụng khi còn ít nhất SoGioTruocBay giờ trước giờ bay
+CREATE TABLE MucPhiHuy
+(
+    SoGioTruocBay INT PRIMARY KEY,
+    TyLePhi INT NOT NULL            -- % phí trên số tiền khách đã trả
 )
 GO
 
--- =============================================
+
+-- ƯU ĐÃI KHÁCH HÀNG
+-- Tổng chi tiêu = tổng tiền các vé đã đặt (không tính vé đã hủy).
+-- Khách mới (chưa có vé nào) được giảm 10%. Ưu đãi được cộng dồn:
+-- tổng % giảm = TyLeHang + TyLeKhachMoi.
+CREATE VIEW vw_UuDaiKhachHang
+AS
+SELECT k.MaKH,
+       ISNULL(t.TongChiTieu, 0) AS TongChiTieu,
+       ISNULL(h.TenHang, N'Thường') AS TenHang,
+       ISNULL(h.TyLeGiam, 0) AS TyLeHang,
+       CASE WHEN t.MaKH IS NULL THEN 10 ELSE 0 END AS TyLeKhachMoi
+FROM KhachHang k
+LEFT JOIN (SELECT MaKH, SUM(GiaVe) AS TongChiTieu
+           FROM Ve
+           WHERE TrangThai = N'Đã đặt'
+           GROUP BY MaKH) t ON t.MaKH = k.MaKH
+OUTER APPLY (SELECT TOP 1 TenHang, TyLeGiam
+             FROM HangThanhVien
+             WHERE MucChiTieu <= ISNULL(t.TongChiTieu, 0)
+             ORDER BY MucChiTieu DESC) h
+GO
+
+
+-- PHÍ HỦY VÉ
+-- Phí hủy = % (theo số giờ còn lại trước giờ bay) x số tiền khách đã trả.
+-- Tiền hoàn = số tiền đã trả - phí hủy.
+CREATE VIEW vw_PhiHuyVe
+AS
+SELECT v.MaVe, v.GiaVe,
+       DATEDIFF(MINUTE, GETDATE(), c.NgayGioBay) AS SoPhutConLai,
+       ISNULL(m.TyLePhi, 100) AS TyLePhi,
+       ROUND(v.GiaVe * ISNULL(m.TyLePhi, 100) / 100, 0) AS PhiHuy,
+       v.GiaVe - ROUND(v.GiaVe * ISNULL(m.TyLePhi, 100) / 100, 0) AS TienHoan
+FROM Ve v
+JOIN ChuyenBay c ON c.MaChuyenBay = v.MaChuyenBay
+OUTER APPLY (SELECT TOP 1 TyLePhi
+             FROM MucPhiHuy
+             WHERE DATEDIFF(MINUTE, GETDATE(), c.NgayGioBay) >= SoGioTruocBay * 60
+             ORDER BY SoGioTruocBay DESC) m
+GO
+
+
 -- ĐĂNG NHẬP
--- =============================================
 CREATE PROC sp_DangNhap
     @TenDangNhap VARCHAR(50),
     @MatKhau VARCHAR(50)
@@ -109,9 +163,8 @@ BEGIN
 END
 GO
 
--- =============================================
+
 -- NHÂN VIÊN
--- =============================================
 CREATE PROC sp_NhanVien_DanhSach
 AS
 BEGIN
@@ -177,13 +230,13 @@ BEGIN
 END
 GO
 
--- =============================================
+
 -- SÂN BAY
--- =============================================
 CREATE PROC sp_SanBay_DanhSach
 AS
 BEGIN
-    SELECT MaSanBay, TenSanBay, ThanhPho
+    SELECT MaSanBay, TenSanBay, ThanhPho,
+           TenSanBay + ' (' + MaSanBay + ')' AS ThongTin
     FROM SanBay
     ORDER BY MaSanBay
 END
@@ -232,10 +285,9 @@ BEGIN
 END
 GO
 
--- =============================================
+
 -- MÁY BAY
 -- Mỗi hàng 6 ghế A-F. Hàng 1-2 là Thương gia, các hàng còn lại là Phổ thông.
--- =============================================
 CREATE PROC sp_MayBay_DanhSach
 AS
 BEGIN
@@ -310,17 +362,21 @@ BEGIN
 END
 GO
 
--- =============================================
+
 -- CHUYẾN BAY
--- =============================================
 CREATE PROC sp_ChuyenBay_DanhSach
 AS
 BEGIN
     SELECT c.MaChuyenBay, c.MaMayBay, m.SoHieu, c.SanBayDi, c.SanBayDen,
-           c.NgayGioBay, c.GiaPhoThong, c.GiaThuongGia, c.TrangThai,
+           di.TenSanBay AS TenSanBayDi, den.TenSanBay AS TenSanBayDen,
+           c.NgayGioBay, c.ThoiGianBay,
+           DATEADD(MINUTE, c.ThoiGianBay, c.NgayGioBay) AS NgayGioDen,
+           c.GiaPhoThong, c.GiaThuongGia, c.TrangThai,
            (SELECT COUNT(*) FROM Ve v WHERE v.MaChuyenBay = c.MaChuyenBay AND v.TrangThai = N'Đã đặt') AS SoVeDaBan
     FROM ChuyenBay c
     JOIN MayBay m ON m.MaMayBay = c.MaMayBay
+    JOIN SanBay di ON di.MaSanBay = c.SanBayDi
+    JOIN SanBay den ON den.MaSanBay = c.SanBayDen
     ORDER BY c.NgayGioBay DESC
 END
 GO
@@ -329,12 +385,17 @@ GO
 CREATE PROC sp_ChuyenBay_ConBan
 AS
 BEGIN
-    SELECT MaChuyenBay,
-           MaChuyenBay + ' | ' + SanBayDi + ' - ' + SanBayDen + ' | ' + FORMAT(NgayGioBay, 'dd/MM/yyyy HH:mm') AS ThongTin,
-           GiaPhoThong, GiaThuongGia
-    FROM ChuyenBay
-    WHERE TrangThai = N'Mở bán' AND NgayGioBay > GETDATE()
-    ORDER BY NgayGioBay
+    SELECT c.MaChuyenBay,
+           c.MaChuyenBay + ' | ' + FORMAT(c.NgayGioBay, 'dd/MM/yyyy HH:mm') + ' | '
+               + di.TenSanBay + N' → ' + den.TenSanBay AS ThongTin,
+           di.TenSanBay AS TenSanBayDi, den.TenSanBay AS TenSanBayDen,
+           c.NgayGioBay, DATEADD(MINUTE, c.ThoiGianBay, c.NgayGioBay) AS NgayGioDen,
+           c.GiaPhoThong, c.GiaThuongGia
+    FROM ChuyenBay c
+    JOIN SanBay di ON di.MaSanBay = c.SanBayDi
+    JOIN SanBay den ON den.MaSanBay = c.SanBayDen
+    WHERE c.TrangThai = N'Mở bán' AND c.NgayGioBay > GETDATE()
+    ORDER BY c.NgayGioBay
 END
 GO
 
@@ -344,6 +405,7 @@ CREATE PROC sp_ChuyenBay_Them
     @SanBayDi VARCHAR(5),
     @SanBayDen VARCHAR(5),
     @NgayGioBay DATETIME,
+    @ThoiGianBay INT,
     @GiaPhoThong MONEY,
     @GiaThuongGia MONEY,
     @TrangThai NVARCHAR(20)
@@ -361,8 +423,14 @@ BEGIN
         RETURN
     END
 
-    INSERT INTO ChuyenBay(MaChuyenBay, MaMayBay, SanBayDi, SanBayDen, NgayGioBay, GiaPhoThong, GiaThuongGia, TrangThai)
-    VALUES(@MaChuyenBay, @MaMayBay, @SanBayDi, @SanBayDen, @NgayGioBay, @GiaPhoThong, @GiaThuongGia, @TrangThai)
+    IF @ThoiGianBay <= 0
+    BEGIN
+        RAISERROR(N'Thời gian bay phải lớn hơn 0.', 16, 1)
+        RETURN
+    END
+
+    INSERT INTO ChuyenBay(MaChuyenBay, MaMayBay, SanBayDi, SanBayDen, NgayGioBay, ThoiGianBay, GiaPhoThong, GiaThuongGia, TrangThai)
+    VALUES(@MaChuyenBay, @MaMayBay, @SanBayDi, @SanBayDen, @NgayGioBay, @ThoiGianBay, @GiaPhoThong, @GiaThuongGia, @TrangThai)
 END
 GO
 
@@ -372,6 +440,7 @@ CREATE PROC sp_ChuyenBay_Sua
     @SanBayDi VARCHAR(5),
     @SanBayDen VARCHAR(5),
     @NgayGioBay DATETIME,
+    @ThoiGianBay INT,
     @GiaPhoThong MONEY,
     @GiaThuongGia MONEY,
     @TrangThai NVARCHAR(20)
@@ -380,6 +449,12 @@ BEGIN
     IF @SanBayDi = @SanBayDen
     BEGIN
         RAISERROR(N'Sân bay đi và sân bay đến phải khác nhau.', 16, 1)
+        RETURN
+    END
+
+    IF @ThoiGianBay <= 0
+    BEGIN
+        RAISERROR(N'Thời gian bay phải lớn hơn 0.', 16, 1)
         RETURN
     END
 
@@ -395,6 +470,7 @@ BEGIN
         SanBayDi = @SanBayDi,
         SanBayDen = @SanBayDen,
         NgayGioBay = @NgayGioBay,
+        ThoiGianBay = @ThoiGianBay,
         GiaPhoThong = @GiaPhoThong,
         GiaThuongGia = @GiaThuongGia,
         TrangThai = @TrangThai
@@ -416,19 +492,20 @@ BEGIN
 END
 GO
 
--- =============================================
+
 -- KHÁCH HÀNG
--- =============================================
 CREATE PROC sp_KhachHang_DanhSach
     @TuKhoa NVARCHAR(100) = ''
 AS
 BEGIN
-    SELECT MaKH, HoTen, CCCD, NgaySinh, GioiTinh, SoDienThoai, Email
-    FROM KhachHang
-    WHERE HoTen LIKE N'%' + @TuKhoa + '%'
-       OR CCCD LIKE '%' + @TuKhoa + '%'
-       OR SoDienThoai LIKE '%' + @TuKhoa + '%'
-    ORDER BY MaKH DESC
+    SELECT k.MaKH, k.HoTen, k.CCCD, k.NgaySinh, k.GioiTinh, k.SoDienThoai, k.Email,
+           u.TenHang, u.TongChiTieu
+    FROM KhachHang k
+    JOIN vw_UuDaiKhachHang u ON u.MaKH = k.MaKH
+    WHERE k.HoTen LIKE N'%' + @TuKhoa + '%'
+       OR k.CCCD LIKE '%' + @TuKhoa + '%'
+       OR k.SoDienThoai LIKE '%' + @TuKhoa + '%'
+    ORDER BY k.MaKH DESC
 END
 GO
 
@@ -439,6 +516,18 @@ BEGIN
     SELECT MaKH, HoTen + ' - ' + CCCD AS ThongTin
     FROM KhachHang
     ORDER BY HoTen
+END
+GO
+
+-- Hạng thành viên và % ưu đãi của khách, dùng ở màn hình đặt vé
+CREATE PROC sp_KhachHang_UuDai
+    @MaKH INT
+AS
+BEGIN
+    SELECT MaKH, TongChiTieu, TenHang, TyLeHang, TyLeKhachMoi,
+           TyLeHang + TyLeKhachMoi AS TyLeGiam
+    FROM vw_UuDaiKhachHang
+    WHERE MaKH = @MaKH
 END
 GO
 
@@ -459,6 +548,9 @@ BEGIN
 
     INSERT INTO KhachHang(HoTen, CCCD, NgaySinh, GioiTinh, SoDienThoai, Email)
     VALUES(@HoTen, @CCCD, @NgaySinh, @GioiTinh, @SoDienThoai, @Email)
+
+    -- Trả về mã khách vừa thêm để màn hình đặt vé chọn sẵn
+    SELECT CAST(SCOPE_IDENTITY() AS INT) AS MaKH
 END
 GO
 
@@ -503,15 +595,22 @@ BEGIN
 END
 GO
 
--- =============================================
+
 -- ĐẶT VÉ - HỦY VÉ
--- =============================================
 CREATE PROC sp_Ghe_ConTrong
     @MaChuyenBay VARCHAR(10),
     @HangVe NVARCHAR(20)
 AS
 BEGIN
-    SELECT g.MaGhe, g.SoGhe
+    -- Mỗi hàng 6 ghế A-F: A, F cạnh cửa sổ; C, D cạnh lối đi; B, E ở giữa
+    SELECT g.MaGhe, g.SoGhe,
+           g.SoGhe + ' - ' + CASE RIGHT(g.SoGhe, 1)
+                                 WHEN 'A' THEN N'Cửa sổ'
+                                 WHEN 'F' THEN N'Cửa sổ'
+                                 WHEN 'C' THEN N'Lối đi'
+                                 WHEN 'D' THEN N'Lối đi'
+                                 ELSE N'Ghế giữa'
+                             END AS ThongTin
     FROM Ghe g
     JOIN ChuyenBay c ON c.MaMayBay = g.MaMayBay
     WHERE c.MaChuyenBay = @MaChuyenBay
@@ -549,15 +648,21 @@ BEGIN
         RETURN
     END
 
-    -- Giá vé lấy theo hạng của ghế
-    DECLARE @GiaVe MONEY
+    -- Giá gốc lấy theo hạng của ghế
+    DECLARE @GiaGoc MONEY, @TyLeGiam INT
 
-    SELECT @GiaVe = CASE WHEN g.HangVe = N'Thương gia' THEN c.GiaThuongGia ELSE c.GiaPhoThong END
+    SELECT @GiaGoc = CASE WHEN g.HangVe = N'Thương gia' THEN c.GiaThuongGia ELSE c.GiaPhoThong END
     FROM Ghe g, ChuyenBay c
     WHERE g.MaGhe = @MaGhe AND c.MaChuyenBay = @MaChuyenBay
 
-    INSERT INTO Ve(MaChuyenBay, MaKH, MaGhe, GiaVe, PhuongThuc, MaNV)
-    VALUES(@MaChuyenBay, @MaKH, @MaGhe, @GiaVe, @PhuongThuc, @MaNV)
+    -- % ưu đãi của khách (hạng thành viên + khách mới), tính trước khi thêm vé
+    SELECT @TyLeGiam = TyLeHang + TyLeKhachMoi
+    FROM vw_UuDaiKhachHang
+    WHERE MaKH = @MaKH
+
+    INSERT INTO Ve(MaChuyenBay, MaKH, MaGhe, GiaGoc, TyLeGiam, GiaVe, PhuongThuc, MaNV)
+    VALUES(@MaChuyenBay, @MaKH, @MaGhe, @GiaGoc, @TyLeGiam,
+           ROUND(@GiaGoc * (100 - @TyLeGiam) / 100, 0), @PhuongThuc, @MaNV)
 
     SELECT SCOPE_IDENTITY() AS MaVe
 END
@@ -568,11 +673,14 @@ CREATE PROC sp_Ve_DanhSach
 AS
 BEGIN
     SELECT v.MaVe, k.HoTen, k.CCCD, v.MaChuyenBay,
-           c.SanBayDi + ' - ' + c.SanBayDen AS ChangBay,
-           c.NgayGioBay, g.SoGhe, g.HangVe, v.GiaVe, v.NgayDat, v.TrangThai
+           di.TenSanBay + N' → ' + den.TenSanBay AS ChangBay,
+           c.NgayGioBay, g.SoGhe, g.HangVe, v.GiaVe, v.NgayDat, v.TrangThai,
+           v.NgayHuy, v.LyDoHuy, v.PhiHuy, v.TienHoan
     FROM Ve v
     JOIN KhachHang k ON k.MaKH = v.MaKH
     JOIN ChuyenBay c ON c.MaChuyenBay = v.MaChuyenBay
+    JOIN SanBay di ON di.MaSanBay = c.SanBayDi
+    JOIN SanBay den ON den.MaSanBay = c.SanBayDen
     JOIN Ghe g ON g.MaGhe = v.MaGhe
     WHERE CAST(v.MaVe AS VARCHAR(10)) = @TuKhoa
        OR k.HoTen LIKE N'%' + @TuKhoa + '%'
@@ -582,8 +690,20 @@ BEGIN
 END
 GO
 
-CREATE PROC sp_Ve_Huy
+-- Xem trước phí hủy và tiền hoàn của một vé
+CREATE PROC sp_Ve_TinhPhiHuy
     @MaVe INT
+AS
+BEGIN
+    SELECT MaVe, GiaVe, SoPhutConLai, TyLePhi, PhiHuy, TienHoan
+    FROM vw_PhiHuyVe
+    WHERE MaVe = @MaVe
+END
+GO
+
+CREATE PROC sp_Ve_Huy
+    @MaVe INT,
+    @LyDoHuy NVARCHAR(200)
 AS
 BEGIN
     IF NOT EXISTS (SELECT * FROM Ve WHERE MaVe = @MaVe AND TrangThai = N'Đã đặt')
@@ -599,25 +719,67 @@ BEGIN
         RETURN
     END
 
-    UPDATE Ve SET TrangThai = N'Đã hủy' WHERE MaVe = @MaVe
+    IF LTRIM(RTRIM(ISNULL(@LyDoHuy, N''))) = N''
+    BEGIN
+        RAISERROR(N'Vui lòng nhập lý do hủy vé.', 16, 1)
+        RETURN
+    END
+
+    -- Phí hủy và tiền hoàn lấy từ vw_PhiHuyVe tại thời điểm hủy
+    UPDATE v
+    SET TrangThai = N'Đã hủy',
+        NgayHuy = GETDATE(),
+        LyDoHuy = LTRIM(RTRIM(@LyDoHuy)),
+        TyLePhiHuy = p.TyLePhi,
+        PhiHuy = p.PhiHuy,
+        TienHoan = p.TienHoan
+    FROM Ve v
+    JOIN vw_PhiHuyVe p ON p.MaVe = v.MaVe
+    WHERE v.MaVe = @MaVe
+
+    SELECT TyLePhiHuy, PhiHuy, TienHoan FROM Ve WHERE MaVe = @MaVe
 END
 GO
 
--- =============================================
+
 -- THỐNG KÊ
--- =============================================
+-- Doanh thu = tiền vé đã bán (theo ngày đặt) + phí hủy giữ lại (theo ngày hủy)
 CREATE PROC sp_ThongKe_TheoThang
     @Nam INT
 AS
 BEGIN
-    SELECT @Nam AS Nam,
-           MONTH(NgayDat) AS Thang,
-           COUNT(*) AS SoVe,
-           SUM(GiaVe) AS DoanhThu
-    FROM Ve
-    WHERE TrangThai = N'Đã đặt' AND YEAR(NgayDat) = @Nam
-    GROUP BY MONTH(NgayDat)
-    ORDER BY Thang
+    ;WITH Thang AS (
+        SELECT 1 AS Thang
+        UNION ALL SELECT Thang + 1 FROM Thang WHERE Thang < 12
+    ),
+    Ban AS (
+        SELECT MONTH(NgayDat) AS Thang, COUNT(*) AS SoVe, SUM(GiaVe) AS TienVe
+        FROM Ve
+        WHERE TrangThai = N'Đã đặt' AND YEAR(NgayDat) = @Nam
+        GROUP BY MONTH(NgayDat)
+    ),
+    Huy AS (
+        -- Vé hủy trước khi có chức năng phí hủy không có ngày hủy: tạm tính theo ngày đặt
+        SELECT MONTH(ISNULL(NgayHuy, NgayDat)) AS Thang, COUNT(*) AS SoVeHuy, SUM(ISNULL(PhiHuy, 0)) AS PhiHuy
+        FROM Ve
+        WHERE TrangThai = N'Đã hủy' AND YEAR(ISNULL(NgayHuy, NgayDat)) = @Nam
+        GROUP BY MONTH(ISNULL(NgayHuy, NgayDat))
+    )
+    SELECT @Nam AS Nam, t.Thang,
+           ISNULL(b.SoVe, 0) AS SoVe,
+           ISNULL(b.TienVe, 0) AS TienVe,
+           ISNULL(h.SoVeHuy, 0) AS SoVeHuy,
+           ISNULL(h.PhiHuy, 0) AS PhiHuy,
+           ISNULL(b.TienVe, 0) + ISNULL(h.PhiHuy, 0) AS DoanhThu,
+           -- Tỷ trọng: doanh thu tháng chiếm bao nhiêu % doanh thu cả năm
+           CAST(CASE WHEN SUM(ISNULL(b.TienVe, 0) + ISNULL(h.PhiHuy, 0)) OVER () = 0 THEN 0
+                     ELSE (ISNULL(b.TienVe, 0) + ISNULL(h.PhiHuy, 0)) * 100.0
+                          / SUM(ISNULL(b.TienVe, 0) + ISNULL(h.PhiHuy, 0)) OVER ()
+                END AS DECIMAL(5, 1)) AS TyTrong
+    FROM Thang t
+    LEFT JOIN Ban b ON b.Thang = t.Thang
+    LEFT JOIN Huy h ON h.Thang = t.Thang
+    ORDER BY t.Thang
 END
 GO
 
@@ -626,32 +788,51 @@ CREATE PROC sp_ThongKe_TheoChuyen
 AS
 BEGIN
     SELECT c.MaChuyenBay,
-           c.SanBayDi + ' - ' + c.SanBayDen AS ChangBay,
+           di.TenSanBay + N' → ' + den.TenSanBay AS ChangBay,
            c.NgayGioBay,
-           COUNT(v.MaVe) AS SoVe,
-           ISNULL(SUM(v.GiaVe), 0) AS DoanhThu
+           x.SoVe, x.TienVe, x.SoVeHuy, x.PhiHuy,
+           x.TienVe + x.PhiHuy AS DoanhThu
     FROM ChuyenBay c
-    JOIN Ve v ON v.MaChuyenBay = c.MaChuyenBay AND v.TrangThai = N'Đã đặt'
-    WHERE YEAR(v.NgayDat) = @Nam
-    GROUP BY c.MaChuyenBay, c.SanBayDi, c.SanBayDen, c.NgayGioBay
+    JOIN SanBay di ON di.MaSanBay = c.SanBayDi
+    JOIN SanBay den ON den.MaSanBay = c.SanBayDen
+    JOIN (SELECT MaChuyenBay,
+                 SUM(CASE WHEN TrangThai = N'Đã đặt' AND YEAR(NgayDat) = @Nam THEN 1 ELSE 0 END) AS SoVe,
+                 SUM(CASE WHEN TrangThai = N'Đã đặt' AND YEAR(NgayDat) = @Nam THEN GiaVe ELSE 0 END) AS TienVe,
+                 SUM(CASE WHEN TrangThai = N'Đã hủy' AND YEAR(ISNULL(NgayHuy, NgayDat)) = @Nam THEN 1 ELSE 0 END) AS SoVeHuy,
+                 SUM(CASE WHEN TrangThai = N'Đã hủy' AND YEAR(ISNULL(NgayHuy, NgayDat)) = @Nam THEN ISNULL(PhiHuy, 0) ELSE 0 END) AS PhiHuy
+          FROM Ve
+          GROUP BY MaChuyenBay) x ON x.MaChuyenBay = c.MaChuyenBay
+    WHERE x.SoVe + x.SoVeHuy > 0
     ORDER BY DoanhThu DESC
 END
 GO
 
--- =============================================
--- BÁO CÁO (CRYSTAL REPORT)
--- =============================================
+
+-- BÁO CÁO
 CREATE PROC sp_BaoCao_Ve
     @MaVe INT
 AS
 BEGIN
-    SELECT v.MaVe, k.HoTen, k.CCCD, v.MaChuyenBay, m.SoHieu,
-           di.ThanhPho + ' (' + c.SanBayDi + ')' AS NoiDi,
-           den.ThanhPho + ' (' + c.SanBayDen + ')' AS NoiDen,
+    SELECT v.MaVe, k.HoTen, k.CCCD, k.SoDienThoai, v.MaChuyenBay, m.SoHieu, m.LoaiMayBay,
+           di.TenSanBay + ' (' + c.SanBayDi + ')' AS NoiDi, di.ThanhPho AS ThanhPhoDi,
+           den.TenSanBay + ' (' + c.SanBayDen + ')' AS NoiDen, den.ThanhPho AS ThanhPhoDen,
            FORMAT(c.NgayGioBay, 'dd/MM/yyyy HH:mm') AS NgayGioBay,
-           g.SoGhe, g.HangVe, v.GiaVe, v.PhuongThuc,
+           FORMAT(DATEADD(MINUTE, c.ThoiGianBay, c.NgayGioBay), 'dd/MM/yyyy HH:mm') AS NgayGioDen,
+           CASE WHEN c.ThoiGianBay < 60 THEN CAST(c.ThoiGianBay AS VARCHAR(5)) + N' phút'
+                WHEN c.ThoiGianBay % 60 = 0 THEN CAST(c.ThoiGianBay / 60 AS VARCHAR(5)) + N' giờ'
+                ELSE CAST(c.ThoiGianBay / 60 AS VARCHAR(5)) + N' giờ ' + CAST(c.ThoiGianBay % 60 AS VARCHAR(5)) + N' phút'
+           END AS ThoiGianBay,
+           g.SoGhe, g.HangVe,
+           ISNULL(v.GiaGoc, v.GiaVe) AS GiaGoc, v.TyLeGiam, v.GiaVe, v.PhuongThuc,
            FORMAT(v.NgayDat, 'dd/MM/yyyy HH:mm') AS NgayDat,
-           n.HoTen AS NhanVien
+           n.HoTen AS NhanVien, v.TrangThai,
+           CASE WHEN v.TrangThai = N'Đã hủy' AND v.NgayHuy IS NULL
+                THEN N'VÉ ĐÃ HỦY'   -- vé hủy trước khi có chức năng phí hủy
+                WHEN v.TrangThai = N'Đã hủy'
+                THEN N'VÉ ĐÃ HỦY ngày ' + FORMAT(v.NgayHuy, 'dd/MM/yyyy HH:mm')
+                     + N'  -  Phí hủy: ' + FORMAT(ISNULL(v.PhiHuy, 0), 'N0', 'vi-VN') + N' đ'
+                     + N'  -  Hoàn lại: ' + FORMAT(ISNULL(v.TienHoan, 0), 'N0', 'vi-VN') + N' đ'
+                ELSE N'' END AS ThongTinHuy
     FROM Ve v
     JOIN KhachHang k ON k.MaKH = v.MaKH
     JOIN ChuyenBay c ON c.MaChuyenBay = v.MaChuyenBay
@@ -669,100 +850,116 @@ CREATE PROC sp_BaoCao_HanhKhach
 AS
 BEGIN
     SELECT c.MaChuyenBay,
-           c.SanBayDi + ' - ' + c.SanBayDen AS ChangBay,
+           di.TenSanBay + N' → ' + den.TenSanBay AS ChangBay,
+           di.TenSanBay + ' (' + c.SanBayDi + ')' AS NoiDi,
+           den.TenSanBay + ' (' + c.SanBayDen + ')' AS NoiDen,
            FORMAT(c.NgayGioBay, 'dd/MM/yyyy HH:mm') AS NgayGioBay,
-           m.SoHieu,
+           FORMAT(DATEADD(MINUTE, c.ThoiGianBay, c.NgayGioBay), 'dd/MM/yyyy HH:mm') AS NgayGioDen,
+           m.SoHieu, m.LoaiMayBay,
            v.MaVe, k.HoTen, k.CCCD, k.SoDienThoai, g.SoGhe, g.HangVe, v.GiaVe
     FROM Ve v
     JOIN KhachHang k ON k.MaKH = v.MaKH
     JOIN ChuyenBay c ON c.MaChuyenBay = v.MaChuyenBay
     JOIN MayBay m ON m.MaMayBay = c.MaMayBay
+    JOIN SanBay di ON di.MaSanBay = c.SanBayDi
+    JOIN SanBay den ON den.MaSanBay = c.SanBayDen
     JOIN Ghe g ON g.MaGhe = v.MaGhe
     WHERE v.MaChuyenBay = @MaChuyenBay AND v.TrangThai = N'Đã đặt'
     ORDER BY g.MaGhe
 END
 GO
 
--- =============================================
--- DỮ LIỆU MẪU
--- =============================================
+-- PROCEDURE THỐNG KÊ & DANH SÁCH HÀNH KHÁCH
+CREATE PROC sp_ThongKe_DoanhThuThang
+    @Nam INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    ;WITH Thang AS (
+        SELECT 1 AS Thang
+        UNION ALL SELECT Thang + 1 FROM Thang WHERE Thang < 12
+    )
+    SELECT @Nam AS Nam, t.Thang, COUNT(v.MaVe) AS SoVe,
+           ISNULL(SUM(v.GiaVe), 0) AS DoanhThu
+    FROM Thang t
+    LEFT JOIN Ve v ON YEAR(v.NgayDat) = @Nam
+        AND MONTH(v.NgayDat) = t.Thang AND v.TrangThai = N'Đã đặt'
+    GROUP BY t.Thang
+    ORDER BY t.Thang;
+END
+GO
+
+CREATE PROC sp_ThongKe_DoanhThuNam
+    @TuNam INT = 2024,
+    @DenNam INT = 2026
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF @TuNam > @DenNam OR @DenNam - @TuNam > 100
+    BEGIN
+        RAISERROR(N'Khoảng năm không hợp lệ (tối đa 101 năm).', 16, 1);
+        RETURN;
+    END;
+    ;WITH Nam AS (
+        SELECT @TuNam AS Nam
+        UNION ALL SELECT Nam + 1 FROM Nam WHERE Nam < @DenNam
+    )
+    SELECT n.Nam, COUNT(v.MaVe) AS SoVe,
+           ISNULL(SUM(v.GiaVe), 0) AS DoanhThu
+    FROM Nam n
+    LEFT JOIN Ve v ON YEAR(v.NgayDat) = n.Nam AND v.TrangThai = N'Đã đặt'
+    GROUP BY n.Nam
+    ORDER BY n.Nam
+    OPTION (MAXRECURSION 101);
+END
+GO
+
+CREATE PROC sp_ChuyenBay_DanhSachHanhKhach
+    @MaChuyenBay VARCHAR(10)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT c.MaChuyenBay, c.NgayGioBay,
+           di.TenSanBay AS SanBayDi, den.TenSanBay AS SanBayDen,
+           m.SoHieu, v.MaVe, k.MaKH, k.HoTen, k.CCCD,
+           k.NgaySinh, k.GioiTinh, k.SoDienThoai, k.Email,
+           g.SoGhe, g.HangVe, v.GiaVe, v.NgayDat
+    FROM Ve v
+    INNER JOIN KhachHang k ON k.MaKH = v.MaKH
+    INNER JOIN ChuyenBay c ON c.MaChuyenBay = v.MaChuyenBay
+    INNER JOIN MayBay m ON m.MaMayBay = c.MaMayBay
+    INNER JOIN SanBay di ON di.MaSanBay = c.SanBayDi
+    INNER JOIN SanBay den ON den.MaSanBay = c.SanBayDen
+    INNER JOIN Ghe g ON g.MaGhe = v.MaGhe
+    WHERE v.MaChuyenBay = @MaChuyenBay AND v.TrangThai = N'Đã đặt'
+    ORDER BY TRY_CONVERT(INT, LEFT(g.SoGhe, LEN(g.SoGhe)-1)), RIGHT(g.SoGhe,1), k.HoTen;
+END
+GO
+
+
+-- DỮ LIỆU BẮT BUỘC: hạng thành viên, mức phí hủy, tài khoản đăng nhập
+INSERT INTO HangThanhVien(TenHang, MucChiTieu, TyLeGiam) VALUES
+(N'Thường', 0, 0),
+(N'Đồng', 5000000, 2),
+(N'Bạc', 15000000, 4),
+(N'Vàng', 30000000, 6),
+(N'Kim Cương', 50000000, 8)
+GO
+
+INSERT INTO MucPhiHuy(SoGioTruocBay, TyLePhi) VALUES
+(168, 10),   -- Từ 7 ngày trở lên
+(72, 25),    -- Từ 3 ngày đến dưới 7 ngày
+(24, 50),    -- Từ 24 giờ đến dưới 3 ngày
+(0, 80)      -- Dưới 24 giờ
+GO
+
 INSERT INTO NhanVien(HoTen, TenDangNhap, MatKhau, VaiTro) VALUES
 (N'Quản trị viên', 'admin', '123', N'Admin'),
 (N'Nguyễn Thu Hà', 'nv01', '123', N'Nhân viên'),
 (N'Trần Minh Đức', 'nv02', '123', N'Nhân viên')
 GO
 
-INSERT INTO SanBay(MaSanBay, TenSanBay, ThanhPho) VALUES
-('HAN', N'Sân bay quốc tế Nội Bài', N'Hà Nội'),
-('SGN', N'Sân bay quốc tế Tân Sơn Nhất', N'TP. Hồ Chí Minh'),
-('DAD', N'Sân bay quốc tế Đà Nẵng', N'Đà Nẵng'),
-('CXR', N'Sân bay quốc tế Cam Ranh', N'Nha Trang'),
-('PQC', N'Sân bay quốc tế Phú Quốc', N'Phú Quốc'),
-('HPH', N'Sân bay quốc tế Cát Bi', N'Hải Phòng'),
-('VCA', N'Sân bay quốc tế Cần Thơ', N'Cần Thơ'),
-('DLI', N'Sân bay Liên Khương', N'Đà Lạt')
-GO
-
-EXEC sp_MayBay_Them 'VN-A321', N'Airbus A321', 10
-EXEC sp_MayBay_Them 'VN-A350', N'Airbus A350', 12
-EXEC sp_MayBay_Them 'VN-B787', N'Boeing 787', 12
-GO
-
--- Ngày bay tính theo ngày hiện tại để luôn có chuyến để đặt
-DECLARE @HomNay DATETIME = CAST(CAST(GETDATE() AS DATE) AS DATETIME)
-
-INSERT INTO ChuyenBay(MaChuyenBay, MaMayBay, SanBayDi, SanBayDen, NgayGioBay, GiaPhoThong, GiaThuongGia, TrangThai) VALUES
-('VN101', 1, 'HAN', 'SGN', DATEADD(HOUR, -52 * 24 + 8, @HomNay), 1500000, 3500000, N'Đã bay'),
-('VN102', 1, 'SGN', 'HAN', DATEADD(HOUR, -21 * 24 + 14, @HomNay), 1500000, 3500000, N'Đã bay'),
-('VN201', 2, 'HAN', 'DAD', DATEADD(HOUR, 2 * 24 + 7, @HomNay), 1100000, 2600000, N'Mở bán'),
-('VN202', 2, 'DAD', 'HAN', DATEADD(HOUR, 4 * 24 + 18, @HomNay), 1100000, 2600000, N'Mở bán'),
-('VN301', 3, 'SGN', 'PQC', DATEADD(HOUR, 3 * 24 + 9, @HomNay), 900000, 2100000, N'Mở bán'),
-('VN302', 3, 'PQC', 'SGN', DATEADD(HOUR, 6 * 24 + 16, @HomNay), 900000, 2100000, N'Mở bán'),
-('VN401', 1, 'HAN', 'CXR', DATEADD(HOUR, 5 * 24 + 10, @HomNay), 1300000, 3000000, N'Mở bán'),
-('VN501', 2, 'SGN', 'DLI', DATEADD(HOUR, 7 * 24 + 6, @HomNay), 800000, 1900000, N'Mở bán')
-GO
-
-INSERT INTO KhachHang(HoTen, CCCD, NgaySinh, GioiTinh, SoDienThoai, Email) VALUES
-(N'Nguyễn Văn An', '001095001234', '1995-03-12', N'Nam', '0912345678', 'an.nguyen@gmail.com'),
-(N'Trần Thị Bình', '079198002345', '1998-07-25', N'Nữ', '0987654321', 'binh.tran@gmail.com'),
-(N'Lê Hoàng Cường', '048090003456', '1990-11-02', N'Nam', '0905112233', 'cuong.le@gmail.com'),
-(N'Phạm Thu Dung', '001201004567', '2001-01-18', N'Nữ', '0934556677', 'dung.pham@gmail.com'),
-(N'Hoàng Minh Đức', '079087005678', '1987-09-30', N'Nam', '0978123456', 'duc.hoang@gmail.com'),
-(N'Vũ Ngọc Hà', '031199006789', '1999-05-08', N'Nữ', '0916789012', 'ha.vu@gmail.com'),
-(N'Đặng Quốc Huy', '001092007890', '1992-12-21', N'Nam', '0965432109', 'huy.dang@gmail.com'),
-(N'Bùi Thanh Lan', '079200008901', '2000-04-14', N'Nữ', '0947891234', 'lan.bui@gmail.com')
-GO
-
--- Vé của các chuyến đã bay (ngày đặt ở các tháng trước)
-INSERT INTO Ve(MaChuyenBay, MaKH, MaGhe, GiaVe, PhuongThuc, NgayDat, MaNV, TrangThai)
-SELECT 'VN101', 1, MaGhe, 3500000, N'Tiền mặt', DATEADD(DAY, -60, GETDATE()), 2, N'Đã đặt' FROM Ghe WHERE MaMayBay = 1 AND SoGhe = '1A'
-UNION ALL
-SELECT 'VN101', 2, MaGhe, 1500000, N'Chuyển khoản', DATEADD(DAY, -58, GETDATE()), 2, N'Đã đặt' FROM Ghe WHERE MaMayBay = 1 AND SoGhe = '5C'
-UNION ALL
-SELECT 'VN101', 3, MaGhe, 1500000, N'Thẻ', DATEADD(DAY, -57, GETDATE()), 3, N'Đã đặt' FROM Ghe WHERE MaMayBay = 1 AND SoGhe = '5D'
-UNION ALL
-SELECT 'VN102', 4, MaGhe, 1500000, N'Tiền mặt', DATEADD(DAY, -30, GETDATE()), 3, N'Đã đặt' FROM Ghe WHERE MaMayBay = 1 AND SoGhe = '7A'
-UNION ALL
-SELECT 'VN102', 5, MaGhe, 3500000, N'Thẻ', DATEADD(DAY, -28, GETDATE()), 2, N'Đã đặt' FROM Ghe WHERE MaMayBay = 1 AND SoGhe = '2F'
-UNION ALL
-SELECT 'VN102', 6, MaGhe, 1500000, N'Chuyển khoản', DATEADD(DAY, -27, GETDATE()), 2, N'Đã hủy' FROM Ghe WHERE MaMayBay = 1 AND SoGhe = '8B'
-GO
-
--- Vé của các chuyến sắp bay
-DECLARE @Ghe INT
-
-SELECT @Ghe = MaGhe FROM Ghe WHERE MaMayBay = 2 AND SoGhe = '3A'
-EXEC sp_Ve_Dat 'VN201', 1, @Ghe, N'Tiền mặt', 2
-
-SELECT @Ghe = MaGhe FROM Ghe WHERE MaMayBay = 2 AND SoGhe = '3B'
-EXEC sp_Ve_Dat 'VN201', 7, @Ghe, N'Tiền mặt', 2
-
-SELECT @Ghe = MaGhe FROM Ghe WHERE MaMayBay = 2 AND SoGhe = '1C'
-EXEC sp_Ve_Dat 'VN201', 8, @Ghe, N'Thẻ', 3
-
-SELECT @Ghe = MaGhe FROM Ghe WHERE MaMayBay = 3 AND SoGhe = '6E'
-EXEC sp_Ve_Dat 'VN301', 2, @Ghe, N'Chuyển khoản', 3
-
-SELECT @Ghe = MaGhe FROM Ghe WHERE MaMayBay = 1 AND SoGhe = '2A'
-EXEC sp_Ve_Dat 'VN401', 4, @Ghe, N'Thẻ', 2
-GO
+-- VÍ DỤ GỌI PROCEDURE
+-- EXEC sp_ThongKe_DoanhThuThang @Nam = 2025;
+-- EXEC sp_ThongKe_DoanhThuNam @TuNam = 2024, @DenNam = 2026;
+-- EXEC sp_ChuyenBay_DanhSachHanhKhach @MaChuyenBay = 'VN101';

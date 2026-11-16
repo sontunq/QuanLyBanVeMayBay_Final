@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Data.SqlClient;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -9,15 +10,23 @@ namespace QLBanVeMayBay.Forms
     {
         private int maKH = 0; // 0 = chưa chọn khách hàng nào
 
+        // Dùng khi mở từ màn hình đặt vé: thêm xong thì đóng form và trả về mã khách vừa thêm
+        public bool ThemNhanh = false;
+        public int MaKHVuaThem = 0;
+
         public frmKhachHang()
         {
             InitializeComponent();
+            GiaoDien.LuoiMuot(dgvKhachHang);
         }
 
         private void frmKhachHang_Load(object sender, EventArgs e)
         {
             LoadData();
             LamMoi();
+
+            if (ThemNhanh)
+                this.Text = "Thêm nhanh khách hàng";
         }
 
         private void LoadData()
@@ -89,7 +98,7 @@ namespace QLBanVeMayBay.Forms
 
             try
             {
-                KetNoiCSDL.ThucThi("sp_KhachHang_Them",
+                DataTable kq = KetNoiCSDL.LayDuLieu("sp_KhachHang_Them",
                     new SqlParameter("@HoTen", txtHoTen.Text.Trim()),
                     new SqlParameter("@CCCD", txtCCCD.Text.Trim()),
                     new SqlParameter("@NgaySinh", dtpNgaySinh.Value.Date),
@@ -98,6 +107,14 @@ namespace QLBanVeMayBay.Forms
                     new SqlParameter("@Email", txtEmail.Text.Trim()));
 
                 MessageBox.Show("Thêm khách hàng thành công.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                if (ThemNhanh)
+                {
+                    MaKHVuaThem = Convert.ToInt32(kq.Rows[0]["MaKH"]);
+                    this.Close();
+                    return;
+                }
+
                 LoadData();
                 LamMoi();
             }
